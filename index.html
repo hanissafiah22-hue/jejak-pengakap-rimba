@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jejak Pengakap Rimba</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--sky:#bfe6d8;--leaf:#3f7d5a;--sun:#f6c177;--bark:#7a4b2a;--paper:#fff4dc;--sak:#f4a3b8;--ink:#2b3a42;--card:#fffaf0;--shadow:rgba(60,40,20,.25)}
+@media (prefers-color-scheme:dark){:root{--paper:#3a3326;--card:#2f2a20;--ink:#fdf1d8;--sky:#2d5a52}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Baloo 2','Trebuchet MS',sans-serif;color:var(--ink);background:linear-gradient(#ffd9a8,var(--sky) 55%,#8fc59a);padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);overflow-x:hidden}
+h1,h2,h3{margin:.2em 0}
+.screen{display:none;max-width:1100px;margin:0 auto;padding:12px}
+.screen.on{display:block}
+.card{background:var(--card);border:3px solid var(--bark);border-radius:22px;padding:16px;box-shadow:0 6px 0 var(--bark),0 12px 24px var(--shadow)}
+button,select,input{font:inherit;color:var(--ink)}
+.btn{background:var(--sak);border:3px solid var(--bark);border-radius:999px;padding:8px 20px;font-weight:700;cursor:pointer;box-shadow:0 4px 0 var(--bark);transition:transform .1s,box-shadow .1s}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--bark)}
+.btn.go{background:var(--sun)}
+.btn:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #2a6fdb;outline-offset:2px}
+.title{text-align:center;margin:10px 0 14px}
+.title h1{font-size:clamp(1.7rem,5vw,3rem);color:#a8325a;text-shadow:2px 2px 0 #fff4dc,4px 4px 0 var(--sun);line-height:1}
+.title p{margin:4px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.avatars{display:flex;gap:12px;margin:8px 0}
+.av{flex:1;font-size:3rem;text-align:center;background:var(--paper);border:3px solid var(--bark);border-radius:18px;cursor:pointer;padding:8px}
+.av small{display:block;font-size:1rem;font-weight:700}
+.av.sel{background:var(--sak);transform:scale(1.04)}
+label{font-weight:700;display:block;margin-top:10px}
+input,select{width:100%;padding:8px 12px;border:3px solid var(--bark);border-radius:14px;background:var(--paper)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.badge{width:56px;height:56px;border-radius:50%;border:3px dashed var(--bark);display:grid;place-items:center;font-size:1.6rem;background:var(--paper);filter:grayscale(1);opacity:.5}
+.badge.got{border-style:solid;filter:none;opacity:1;background:radial-gradient(#fff4dc,var(--sun));box-shadow:0 0 0 3px #fff,0 0 14px #f6c177;animation:pop .6s}
+@keyframes pop{0%{transform:scale(0) rotate(-90deg)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.hud{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.pill{background:var(--card);border:3px solid var(--bark);border-radius:999px;padding:2px 14px;font-weight:700;display:flex;gap:8px;align-items:center}
+.bar{width:110px;height:14px;border-radius:9px;background:#e8d5b5;border:2px solid var(--bark);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(#ff8a7a,#f25f5c);transition:width .3s}
+.bar.heat i{background:linear-gradient(#ffd166,#ef476f)}
+.hubwrap{display:grid;grid-template-columns:1fr 250px;gap:12px}
+@media(max-width:860px){.hubwrap{grid-template-columns:1fr}}
+canvas{width:100%;height:auto;display:block;border:3px solid var(--bark);border-radius:20px;background:#9bd3b0;touch-action:manipulation}
+#lb li,#ptl li{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dotted var(--bark)}
+#lb li.me{font-weight:800;color:#a8325a}
+#lb{list-style:none;padding:0;margin:6px 0 0}
+#modal{position:fixed;inset:0;background:rgba(40,30,20,.55);display:none;place-items:center;padding:12px;z-index:9;overflow:auto}
+#modal.on{display:grid}
+#mbox{width:min(740px,100%);max-height:96vh;overflow:auto}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;background:var(--paper);border:3px solid var(--bark);border-radius:14px;padding:8px 12px;cursor:pointer;font-weight:600}
+.opt:hover{background:var(--sun)}.opt.ok{background:#9be0a8}.opt.bad{background:#f6a0a0}
+.step{display:inline-block;margin:4px;padding:8px 12px;background:var(--paper);border:3px solid var(--bark);border-radius:14px;cursor:pointer;font-weight:600}
+.step.done{background:#9be0a8;pointer-events:none}
+.tb{width:100%;border-collapse:collapse;font-size:.95rem}.tb th,.tb td{border-bottom:1px dotted var(--bark);padding:4px 6px;text-align:center}.tb td:nth-child(2){text-align:left}.tb tr.me{font-weight:800;color:#a8325a}
+.toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--sun);border:3px solid var(--bark);border-radius:999px;padding:6px 20px;font-weight:800;z-index:20;box-shadow:0 4px 0 var(--bark)}
+#fx{position:fixed;inset:0;width:100%;height:100%;z-index:10;display:none;border:0;border-radius:0;background:radial-gradient(#4a2a4a,#14122a)}
+#fxui{position:fixed;inset:0;z-index:11;display:none;place-items:center;text-align:center;color:#fff4dc;padding:12px}
+#fxui .card{color:var(--ink)}
+.row{display:flex;gap:8px;align-items:center}
+.small{font-size:.9rem}
+</style>
+</head>
+<body>
+
+<section id="s-setup" class="screen on" aria-hidden="false">
+ <div class="title"><h1>Jejak Pengakap Rimba</h1><p>Perkhemahan Virtual &amp; Pakar Survival Pengakap Malaysia 🌸 Sedia!</p></div>
+ <div class="grid2">
+  <div class="card" role="region" aria-labelledby="choose-title">
+   <h2 id="choose-title">Pilih Pengakap Kamu</h2>
+   <div class="avatars" role="list">
+     <div class="av sel" data-g="b" tabindex="0" role="button" aria-pressed="true">👦<small>Pengakap Lelaki</small></div>
+     <div class="av" data-g="g" tabindex="0" role="button" aria-pressed="false">👧<small>Pengakap Perempuan</small></div>
+   </div>
+   <label for="nm">Nama Murid</label><input id="nm" maxlength="16" placeholder="Taip nama kamu" aria-label="Nama murid">
+   <label for="pt">Pasukan Peronda</label>
+   <select id="pt" aria-label="Pilih pasukan peronda"><option>Helang</option><option>Musang</option><option>Harimau</option><option>Serigala</option></select>
+   <p><button class="btn go" id="start">Mula Perkhemahan</button></p>
+   <p class="small">Nota: Skor disimpan ke peranti. Untuk papan skor kelas, setiap murid boleh Eksport Skor (JSON) kepada guru; guru boleh gabungkan dan gunakan Import Skor Kelas.</p>
+  </div>
+  <div class="card" role="region" aria-labelledby="profile-title">
+   <h2 id="profile-title">Profil Pengakap</h2>
+   <p id="prof">Nama: -</p>
+   <h3>Koleksi Lencana</h3>
+   <div class="badges" id="b0" aria-live="polite"></div>
+   <p>Selesaikan 4 zon untuk menyalakan api unggun perayaan!</p>
+  </div>
+ </div>
+</section>
+
+<section id="s-hub" class="screen" aria-hidden="true">
+ <div class="hud">
+  <div class="pill" id="who" aria-live="polite">-</div>
+  <div class="pill">❤️ Tenaga <div class="bar"><i id="en" style="width:100%"></i></div></div>
+  <div class="pill">⭐ Skor <b id="sc">0</b></div>
+  <div class="pill">🏅 <span id="bt">0/4</span></div>
+  <button class="btn go" id="bd">📋 Markah Kelas</button><button class="btn" id="mute">🔊</button>
+ </div>
+ <div class="hubwrap">
+  <canvas id="cv" width="960" height="540" aria-label="Peta perkhemahan" role="img"></canvas>
+  <div class="card" role="region" aria-labelledby="board-title"><h3 id="board-title">🏆 Papan Skor</h3><div id="lbs" style="font-size:.85rem"></div><ul id="lb" aria-live="polite"></ul><h3>🚩 Mata Peronda</h3><ul id="ptl" style="list-style:none;padding:0;margin:6px 0 0"></ul>
+   <p style="font-size:.9rem">Klik pada peta untuk berjalan. Masuk ke papan tanda zon untuk bermain.</p></div>
+ </div>
+</section>
+
+<div id="modal" aria-hidden="true"><div id="mbox" class="card" role="dialog" aria-modal="true"></div></div>
+<canvas id="fx"></canvas>
+<div id="fxui" aria-hidden="true"><div class="card"><h1>🎉 Tahniah, <span id="fn"></span>!</h1><p>Semua zon selesai di sekeliling api unggun.</p><p id="fz" style="font-weight:700"></p><h2>Skor Akhir: <span id="fs"></span></h2><div class="badges" id="b1" style="justify-content:center"></div><p><button class="btn go" onclick="location.reload()">Main Semula</button></p></div></div>
+
+<script>
+'use strict';
+/*
+  Perubahan utama:
+  - Betulkan operator fallback (||)
+  - Canvas HiDPI scaling
+  - Polyfill roundRect
+  - Modal accessibility (Escape, focus trap)
+  - Skor: localStorage + Export/Import JSON untuk papan skor kelas
+*/
+
+/* Utilities */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuf = a => a.map(v => [Math.random(), v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+function toast(t) { const d = document.createElement('div'); d.className='toast'; d.textContent = t; document.body.appendChild(d); setTimeout(()=>d.remove(), 1800); }
+
+/* Zone data */
+const ZONES = [
+ {id:'khemah',x:170,y:300,n:'Zon Membina Khemah',e:'⛺',b:'Lencana Pembina Khemah'},
+ {id:'jungle',x:790,y:170,n:'Zon Jungle Trekking',e:'🌲',b:'Lencana Penjejak Hutan'},
+ {id:'masak',x:470,y:440,n:'Zon Masakan Rimba',e:'🍞',b:'Lencana Tukang Masak Rimba'},
+ {id:'ikatan',x:790,y:410,n:'Zon Master Ikatan',e:'🪢',b:'Lencana Master Ikatan'}
+];
+
+/* State */
+const S = {g:'b', name:'', patrol:'Helang', score:0, energy:100, badges:{}, zp:{}, t0:0};
+const PC = {Helang:'#e4572e', Musang:'#4f9d69', Harimau:'#f2a541', Serigala:'#5b7fc7'};
+let muted = false, AC = null, userInteracted = false;
+
+/* Audio helper (resume on first user gesture) */
+function ensureAudioContext() {
+  try {
+    if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended' && userInteracted) AC.resume();
+  } catch (e) { AC = null; }
+}
+function sfx(f=520, d=.12, t='sine') {
+  if (muted) return;
+  ensureAudioContext();
+  try {
+    if (!AC) return;
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = t; o.frequency.value = f; g.gain.value = .06;
+    o.connect(g); g.connect(AC.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + d);
+    o.stop(AC.currentTime + d + .02);
+  } catch (e) {}
+}
+
+/* Canvas roundRect polyfill */
+(function() {
+  if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r=8) {
+      if (typeof r === 'number') r = {tl:r, tr:r, br:r, bl:r};
+      this.beginPath();
+      this.moveTo(x + r.tl, y);
+      this.lineTo(x + w - r.tr, y);
+      this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+      this.lineTo(x + w, y + h - r.br);
+      this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+      this.lineTo(x + r.bl, y + h);
+      this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+      this.lineTo(x, y + r.tl);
+      this.quadraticCurveTo(x, y, x + r.tl, y);
+      this.closePath();
+    };
+  }
+})();
+
+/* HiDPI helper */
+function scaleCanvas(canvas, w, h) {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return ctx;
+}
+
+/* Leaderboard storage (local + import/export for class) */
+function loadLocalScores() {
+  try { return JSON.parse(localStorage.getItem('ssLB') || '[]'); } catch(e) { return []; }
+}
+function saveLocalScores(arr) { localStorage.setItem('ssLB', JSON.stringify(arr.slice(-500))); }
+function addLocalScoreEntry(entry) {
+  const arr = loadLocalScores().filter(r => r.n !== entry.n || r.p !== entry.p);
+  arr.push(entry);
+  saveLocalScores(arr);
+}
+
+/* UI wiring */
+function badgeHTML() {
+  return ZONES.map(z => `<div class="badge ${S.badges[z.id]?'got':''}" title="${esc(z.b)}">${S.badges[z.id]?z.e:'?'}</div>`).join('');
+}
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => {
+    const on = s.id === id;
+    s.classList.toggle('on', on);
+    s.setAttribute('aria-hidden', (!on).toString());
+  });
+}
+function hud() {
+  $('#sc').textContent = S.score;
+  $('#en').style.width = S.energy + '%';
+  $('#bt').textContent = Object.keys(S.badges).length + '/4';
+  $('#who').textContent = (S.g==='b'?'👦 ':'👧 ') + S.name + ' • Peronda ' + S.patrol;
+  $('#b0').innerHTML = badgeHTML();
+  renderLeaderboard();
+}
+
+/* Simple hurt */
+function hurt(n) { S.energy = Math.max(0, S.energy - n); if (!S.energy) { toast('Kamu letih! Berehat sebentar 😴'); S.energy = 40; } hud(); sfx(180, .2, 'square'); }
+
+/* Local top scoreboard renderer (and class import) */
+let CLASS_SCORES = null; // if imported (array)
+let MY_ID = null;
+function renderLeaderboard() {
+  const seed = [['Ali','Helang',320],['Mei Ling','Musang',280],['Kumar','Harimau',240],['Aina','Serigala',200]];
+  const local = loadLocalScores();
+  const combined = seed.map(a=>({n:a[0], p:a[1], s:a[2]})).concat(local);
+  // If class scores imported, use them
+  const list = (CLASS_SCORES && Array.isArray(CLASS_SCORES)) ? CLASS_SCORES.slice() : combined;
+  // Add current player (best score from S.zp)
+  const myBest = Object.values(S.zp).reduce((a,b)=>a+b,0);
+  if (S.name) list.push({n: S.name, p: S.patrol, s: Math.max(S.score, myBest), me: true});
+  list.sort((a,b)=>b.s - a.s);
+  $('#lbs').textContent = CLASS_SCORES ? '🌐 Papan skor kelas (import)' : '📴 Papan skor peranti ini sahaja';
+  $('#lb').innerHTML = list.slice(0,10).map((r,i) => `<li class="${r.me ? 'me' : ''}"><span>${i+1}. ${esc(r.n)} (${esc(r.p)})</span><b>${esc(r.s)}</b></li>`).join('');
+  const totals = {};
+  list.forEach(r => totals[r.p] = (totals[r.p]||0) + (+r.s||0));
+  $('#ptl').innerHTML = Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(e => `<li><span>Peronda ${esc(e[0])}</span><b>${esc(e[1])}</b></li>`).join('');
+}
+
+/* Export / Import helpers for teacher */
+function openClassBoardModal() {
+  const local = loadLocalScores();
+  const exportObj = { exportedAt: Date.now(), scores: local };
+  const json = JSON.stringify(exportObj);
+  openM(`<h2>📋 Papan Markah</h2>
+    <p>Anda boleh eksport skor anda (salin JSON) untuk dihantar kepada guru.</p>
+    <p><button class="btn" id="copyExport">Salin JSON Eksport</button> <button class="btn" id="downloadExport">Muat Turun (JSON)</button></p>
+    <p style="margin-top:8px">Guru: tampal JSON gabungan di bawah untuk memaparkan papan skor kelas.</p>
+    <textarea id="importArea" style="width:100%;height:140px"></textarea>
+    <p><button class="btn go" id="doImport">Import Skor Kelas</button> <button class="btn" id="clearClass">Kosongkan Import</button></p>
+    <hr><p style="font-size:.9rem">Nota: Jika anda ingin papan skor langsung (real-time), anda boleh sambungkan Firestore atau backend; ini versi tanpa server (export/import).</p>
+    <p><button class="btn" id="closeModal">Tutup</button></p>`);
+  document.getElementById('copyExport').onclick = () => {
+    navigator.clipboard.writeText(json).then(()=>toast('JSON disalin ke papan klip'), ()=>toast('Tidak boleh salin'));
+  };
+  document.getElementById('downloadExport').onclick = () => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([json], {type:'application/json'})); a.download = 'class-scores.json'; a.click();
+  };
+  document.getElementById('doImport').onclick = () => {
+    const t = document.getElementById('importArea').value.trim();
+    if (!t) { CLASS_SCORES = null; renderLeaderboard(); toast('Import dibatalkan'); return; }
+    try {
+      const parsed = JSON.parse(t);
+      // Accept both {scores: [...] } or [...] format
+      const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.scores) ? parsed.scores : null);
+      if (!arr) throw new Error('JSON tidak mengandungi skor');
+      // sanitize entries (n, p, s)
+      CLASS_SCORES = arr.map(r => ({ n: String(r.n||r.name||'Siswa'), p: String(r.p||r.patrol||'Helang'), s: Number(r.s||r.score||0) }));
+      closeM(); renderLeaderboard(); toast('Skor kelas diimport');
+    } catch(e) { alert('JSON tidak sah: ' + (e && e.message)); }
+  };
+  document.getElementById('clearClass').onclick = () => { CLASS_SCORES = null; renderLeaderboard(); toast('Import kelas dikosongkan'); };
+  document.getElementById('closeModal').onclick = () => closeM();
+}
+
+/* Modal accessibility (focus trap + Escape) */
+let lastFocused = null;
+let stopFn = null;
+function openM(html) {
+  lastFocused = document.activeElement;
+  const m = $('#modal'); const box = $('#mbox');
+  box.innerHTML = html;
+  m.classList.add('on'); m.setAttribute('aria-hidden','false');
+  // focus first focusable
+  const focusable = box.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (focusable.length) focusable[0].focus();
+  // trap
+  function trap(e) {
+    const focusables = box.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+    const first = focusables[0], last = focusables[focusables.length-1];
+    if (e.key === 'Tab') {
+      if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+      else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+    } else if (e.key === 'Escape') { closeM(); }
+  }
+  document.addEventListener('keydown', trap);
+  stopFn = ()=> document.removeEventListener('keydown', trap);
+}
+function closeM() {
+  if (stopFn) stopFn();
+  stopFn = null;
+  $('#modal').classList.remove('on'); $('#modal').setAttribute('aria-hidden','true');
+  if (lastFocused && lastFocused.focus) setTimeout(()=> lastFocused.focus(), 50);
+}
+
+/* Simple quiz helper */
+function quiz(title, qs, cb) {
+  let i=0, ok=0, bad=0;
+  const nx = () => {
+    if (i >= qs.length) return cb(ok, bad);
+    const q = qs[i], opts = shuf(q.o.map((t,k)=>({t,k})));
+    openM(`<h2>${esc(title)}</h2><p><b>Soalan ${i+1}/${qs.length}:</b> ${q.q}</p>` + opts.map(o => `<button class="opt" data-k="${o.k}">${o.t}</button>`).join('') + `<p style="margin-top:12px"><button class="btn" onclick="closeM()">Keluar</button></p>`);
+    document.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      const r = +b.dataset.k === q.a;
+      b.classList.add(r ? 'ok' : 'bad');
+      if (r) { ok++; sfx(740); } else { bad++; hurt(8); }
+      document.querySelectorAll('.opt').forEach(x => x.style.pointerEvents='none');
+      setTimeout(()=>{ i++; nx(); }, r ? 600 : 1100);
+    });
+  };
+  nx();
+}
+
+/* Game implementations (kept similar to asal, but safer) */
+function finish(z, pts) {
+  const secs = (Date.now() - S.t0)/1000;
+  const bonus = Math.max(0, Math.round(60 - secs));
+  const tot = Math.max(20, pts + bonus);
+  S.zp[z.id] = Math.max(S.zp[z.id] || 0, tot);
+  S.score = Object.values(S.zp).reduce((a,b)=>a+b,0);
+  const first = !S.badges[z.id];
+  S.badges[z.id] = 1;
+  S.energy = Math.min(100, S.energy + 20);
+  hud();
+  addLocalScoreEntry({ n: S.name, p: S.patrol, s: S.score, z: S.zp, t: Date.now() });
+  sfx(880, .4);
+  openM(`<h2>✅ ${esc(z.n)} Selesai!</h2><p>Ketepatan: +${pts} • Bonus kelajuan: +${bonus}</p><h3>+${tot} mata • Jumlah skor: ${S.score}</h3><div class="badges"><div class="badge got">${z.e}</div></div><p><b>${first ? 'Lencana baharu: ' : 'Lencana: '}${esc(z.b)}</b></p><p><button class="btn go" onclick="closeM();checkCompletion()">Teruskan</button></p>`);
+}
+function checkCompletion() {
+  if (Object.keys(S.badges).length === 4) celebrate();
+}
+
+/* Specific zone games (kept functionally similar) */
+function khemah() {
+  const z = ZONES[0];
+  const st = ['Pilih tapak yang rata dan bersih','Hamparkan lantai khemah','Pasang tiang khemah','Ikat tali penegang dengan Ikatan Seraya','Tekan pancang ke tanah'];
+  let n = 0, mis = 0;
+  openM(`<h2>⛺ Membina Khemah</h2><p>Klik langkah mengikut urutan yang betul.</p><div id="stp"></div><p id="msg"></p><p><button class="btn" onclick="closeM()">Keluar ke Kem</button></p>`);
+  const stp = document.getElementById('stp');
+  shuf(st.map((t,k)=>({t,k}))).forEach(o=>{
+    const d = document.createElement('span'); d.className = 'step'; d.textContent = o.t;
+    d.onclick = () => {
+      if (o.k == n) {
+        d.classList.add('done'); n++; sfx(600 + n*80); $('#msg').textContent = n + ' / 5 langkah ✔';
+        if (n == 5) setTimeout(()=> quiz('Gajet Khemah', [
+          { q: 'Ikatan manakah sesuai untuk mengikat tali penegang pada tiang khemah?', o: ['Ikatan Seraya','Buku Sila','Tindih Kasih'], a: 0 },
+          { q: 'Apakah fungsi Simpulan Manuk?', o: ['Membuat gelung tetap yang tidak menyelinap','Menyambung dua tali sama saiz','Mengheret balak'], a: 0 }
+        ], (ok, bad) => finish(z, ok*50 + 60 - mis*10) ), 500);
+      } else { mis++; hurt(6); $('#msg').textContent = 'Urutan salah! Cuba lagi.'; sfx(200, .08, 'square'); }
+    };
+    stp.appendChild(d);
+  });
+}
+
+function jungle() {
+  const z = ZONES[1];
+  openM(`<h2>🌲 Jungle Trekking</h2><p>Kutip 6 kayu api 🪵 dan elak batu 🪨. Tekan ↑ ↓ atau ketik lorong.</p><canvas id="tc" width="600" height="270" aria-label="Jungle mini game"></canvas><p id="tm">Kayu: 0/6</p><p><button class="btn" onclick="closeM()">Keluar</button></p>`);
+  const c = $('#tc');
+  const ctx = scaleCanvas(c, 600, 270);
+  let lane = 1, objs = [], wood = 0, hits = 0, f = 0, raf, run = true;
+  ctx.font = '34px serif'; ctx.textBaseline = 'middle';
+  function key(e) { if (e.key === 'ArrowUp') lane = Math.max(0, lane - 1); if (e.key === 'ArrowDown') lane = Math.min(2, lane + 1); }
+  window.addEventListener('keydown', key);
+  c.onpointerdown = e => {
+    const r = c.getBoundingClientRect();
+    lane = Math.min(2, Math.floor((e.clientY - r.top) / r.height * 3));
+  };
+  stopFn = () => { run = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', key); c.onpointerdown = null; };
+  const tick = () => {
+    if (!run) return;
+    f++;
+    ctx.fillStyle = '#8fc59a'; ctx.fillRect(0,0,600,270);
+    for (let l=0;l<3;l++){ ctx.fillStyle = l%2 ? '#b9955f':'#c8a46c'; ctx.fillRect(0,l*90+8,600,74); }
+    if (f % 45 === 0
